@@ -1,0 +1,224 @@
+/* ===== 分类栏 ===== */
+.category-bar {
+  display: flex;
+  align-items: center;
+  padding: 0 8px 0 16px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  gap: 4px;
+}
+
+.category-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  flex: 1;
+  padding: 8px 0;
+  scrollbar-width: none;
+}
+.category-tabs::-webkit-scrollbar { display: none; }
+
+.cat-tab {
+  flex-shrink: 0;
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  color: var(--text-sub);
+  background: transparent;
+  border: 1px solid var(--border);
+  transition: all .15s;
+  white-space: nowrap;
+}
+.cat-tab.active {
+  background: var(--text);
+  color: var(--bg-card);
+  border-color: var(--text);
+}
+.cat-tab:active { opacity: .6; }
+
+.cat-manage-btn { flex-shrink: 0; }
+
+/* ===== 卡片列表 ===== */
+.card-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 16px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ===== 空状态 ===== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  gap: 6px;
+  color: var(--text-muted);
+}
+.empty-icon {
+  width: 48px; height: 48px;
+  margin-bottom: 8px;
+  opacity: .3;
+}
+.empty-state p { font-size: 15px; color: var(--text-sub); }
+.empty-sub { font-size: 13px; color: var(--text-muted); }
+
+/* ===== 角色卡卡片 ===== */
+.char-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: background .15s;
+  position: relative;
+  overflow: hidden;
+}
+.char-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--border-l);
+}
+.char-card.coc7::before { background: #1a1a1a; }
+.char-card.dnd5::before  { background: #888880; }
+
+.char-card:active { background: var(--bg-raised); }
+
+.char-card-avatar {
+  width: 40px; height: 40px;
+  border-radius: var(--radius-s);
+  background: var(--bg-raised);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+}
+.char-card-avatar svg { width: 20px; height: 20px; color: var(--text-muted); }
+
+.char-card-info { flex: 1; min-width: 0; }
+
+.char-card-name {
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -.1px;
+}
+
+.char-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  flex-wrap: wrap;
+}
+
+.char-card-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.char-card-stats {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.stat-chip {
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--bg-raised);
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+.stat-chip span { color: var(--text-sub); font-weight: 600; }
+
+.char-card-pin {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+.char-card-pin svg { width: 16px; height: 16px; }
+
+/* ===== 新建卡 选择系统 ===== */
+.system-choices {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.system-choice {
+  flex: 1;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: all .15s;
+}
+.system-choice:active { background: var(--bg-input); border-color: var(--text); }
+.sys-icon { width: 32px; height: 32px; color: var(--text-sub); }
+.sys-name { font-size: 16px; font-weight: 700; }
+.sys-desc { font-size: 11px; color: var(--text-muted); text-align: center; }
+
+/* ===== 分类管理弹层 ===== */
+.cat-list { margin-bottom: 12px; }
+
+.cat-manage-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 10px;
+}
+.cat-manage-item span { flex: 1; font-size: 14px; }
+.cat-delete-btn {
+  color: var(--danger);
+  font-size: 13px;
+  padding: 4px 8px;
+}
+
+.cat-add-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+.cat-add-row input {
+  flex: 1;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-s);
+  padding: 8px 12px;
+  font-size: 14px;
+  color: var(--text);
+}
+.cat-add-row input::placeholder { color: var(--text-muted); }
+
+/* ===== 加载更多按钮 ===== */
+.load-more-btn {
+  width: 100%;
+  padding: 12px;
+  margin-top: 8px;
+  background: transparent;
+  border: 1px dashed var(--border-l);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.load-more-btn:active { border-color: var(--text); color: var(--text); }

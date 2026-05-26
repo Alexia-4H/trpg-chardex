@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TRPG Chardex · 跑团PC速查</title>
+  <meta name="theme-color" content="#f5f3ee">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/home.css">
+  <link rel="stylesheet" href="css/card-form.css">
+  <link rel="stylesheet" href="css/card-view.css">
+  <link rel="stylesheet" href="css/tools.css">
+</head>
+<body>
+
+  <!-- ========== 底部导航 ========== -->
+  <nav class="bottom-nav" id="bottom-nav">
+    <button class="nav-item active" data-page="home">
+      <svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
+      <span>卡册</span>
+    </button>
+    <button class="nav-item" data-page="tools">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>
+      <span>工具</span>
+    </button>
+    <button class="nav-item" data-page="support">
+      <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+      <span>支持</span>
+    </button>
+  </nav>
+
+  <!-- ========== 主页：卡册 ========== -->
+  <div class="page active" id="page-home">
+    <header class="page-header">
+      <h1 class="app-title">TRPG Chardex</h1>
+      <div class="header-actions">
+        <button class="icon-btn" id="btn-search-toggle" title="搜索">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        </button>
+        <button class="icon-btn" id="btn-new-card" title="新建角色卡">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- 搜索栏 -->
+    <div class="search-bar" id="search-bar" style="display:none">
+      <input type="text" id="search-input" placeholder="搜索角色名…" autocomplete="off">
+      <button class="text-btn" id="btn-search-cancel">取消</button>
+    </div>
+
+    <!-- 分类管理栏 -->
+    <div class="category-bar" id="category-bar">
+      <div class="category-tabs" id="category-tabs">
+        <button class="cat-tab active" data-cat="all">全部</button>
+        <button class="cat-tab" data-cat="pinned">置顶</button>
+        <!-- 动态分类 -->
+      </div>
+      <button class="icon-btn cat-manage-btn" id="btn-manage-cats" title="管理分类">
+        <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- 卡片列表 -->
+    <main class="card-list" id="card-list">
+      <!-- 由 JS 动态渲染 -->
+    </main>
+  </div>
+
+  <!-- ========== 工具页 ========== -->
+  <div class="page" id="page-tools">
+    <header class="page-header">
+      <h1 class="app-title">工具箱</h1>
+    </header>
+    <main class="tools-list">
+      <section class="tool-section">
+        <h2 class="section-title">数据管理</h2>
+        <button class="tool-item" id="btn-export-json">
+          <div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
+          <div class="tool-info">
+            <div class="tool-name">导出全部数据</div>
+            <div class="tool-desc">将所有角色卡导出为 JSON 文件备份</div>
+          </div>
+          <svg class="tool-arrow" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+        <button class="tool-item" id="btn-import-json">
+          <div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg></div>
+          <div class="tool-info">
+            <div class="tool-name">导入数据</div>
+            <div class="tool-desc">从 JSON 文件恢复角色卡数据</div>
+          </div>
+          <svg class="tool-arrow" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+        <input type="file" id="import-file-input" accept=".json" style="display:none">
+      </section>
+
+      <section class="tool-section">
+        <h2 class="section-title">备忘录</h2>
+        <div class="memo-area">
+          <textarea id="memo-text" placeholder="记录跑团相关的临时备忘…&#10;&#10;数据自动保存。"></textarea>
+        </div>
+      </section>
+
+      <section class="tool-section">
+        <h2 class="section-title">骰点</h2>
+        <div class="dice-panel" id="dice-panel">
+          <div class="dice-presets">
+            <button class="dice-btn" data-dice="4">D4</button>
+            <button class="dice-btn" data-dice="6">D6</button>
+            <button class="dice-btn" data-dice="8">D8</button>
+            <button class="dice-btn" data-dice="10">D10</button>
+            <button class="dice-btn" data-dice="12">D12</button>
+            <button class="dice-btn" data-dice="20">D20</button>
+            <button class="dice-btn" data-dice="100">D100</button>
+          </div>
+          <div class="dice-custom-row">
+            <span class="dice-custom-label">自定义</span>
+            <input class="dice-custom-input" id="dice-count" type="number" min="1" max="20" value="1">
+            <span class="dice-custom-sep">D</span>
+            <input class="dice-custom-input" id="dice-faces" type="number" min="2" max="1000" value="6">
+            <button class="dice-custom-roll" id="btn-custom-roll">骰</button>
+          </div>
+          <div class="dice-result-area" id="dice-result-area" style="display:none">
+            <div class="dice-result-detail" id="dice-result-detail"></div>
+            <div class="dice-result-total" id="dice-result-total"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ========== 支持页 ========== -->
+  <div class="page" id="page-support">
+    <header class="page-header">
+      <h1 class="app-title">支持作者</h1>
+    </header>
+    <main class="support-content">
+      <div class="support-card">
+        <h2>感谢支持～</h2>
+        <p>工具完全免费，如果觉得好用，欢迎打赏支持一下～</p>
+        <a class="buy-btn" href="https://www.goofish.com/item?id=1052831511189" target="_blank">前往打赏</a>
+      </div>
+
+      <div class="support-card">
+        <h2>跑团记录小工具</h2>
+        <p>记录统计我的每次跑团和pc命运走向，生成我的跑团履历</p>
+        <a class="buy-btn" id="link-xianyu" href="https://www.goofish.com/item?id=1026983840464" target="_blank">前往查看</a>
+      </div>
+
+      <div class="support-card about-card">
+        <h2>关于本工具</h2>
+        <p>跑团PC速查 TRPG Chardex_4H_v1.0</p>
+        <p class="version-text">作者：4H</p>
+        <p class="version-text">报错联系：Alexia-4H@qq.com</p>
+        <p class="version-text" style="margin-top:8px">支持 COC 7e / DND 5e</p>
+        <p class="version-text">数据存储在本地浏览器，请定期导出备份</p>
+        <p class="version-text" style="margin-top:8px;line-height:1.6">本工具为个人开发的免费跑团辅助工具。工具内容基于公开的桌游规则整理，相关规则版权归原作者及出版方所有。本工具不保证数据安全性，不对数据丢失、使用不当等情况承担责任，使用即视为同意以上条款。</p>
+      </div>
+    </main>
+  </div>
+
+  <!-- ========== 弹层：新建卡 选择系统 ========== -->
+  <div class="modal-overlay" id="modal-new-card" style="display:none">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <h3 class="modal-title">选择规则系统</h3>
+      <div class="system-choices">
+        <button class="system-choice" data-system="coc7">
+          <svg class="sys-icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M6 20c0-3.31 2.69-6 6-6s6 2.69 6 6"/><path d="M3 17c0-2 1.5-3.5 3-4"/><path d="M21 17c0-2-1.5-3.5-3-4"/></svg>
+          <div class="sys-name">COC 7e</div>
+          <div class="sys-desc">克苏鲁的呼唤 第七版</div>
+        </button>
+        <button class="system-choice" data-system="dnd5">
+          <svg class="sys-icon" viewBox="0 0 24 24"><path d="M14.5 17.5L3 6V3h3l11.5 11.5"/><path d="M13 19l6-6 2 2-6 6-2-2z"/><path d="M3 21l4-4"/></svg>
+          <div class="sys-name">DND 5e</div>
+          <div class="sys-desc">龙与地下城 第五版</div>
+        </button>
+      </div>
+      <button class="modal-cancel" id="btn-cancel-new">取消</button>
+    </div>
+  </div>
+
+  <!-- ========== 弹层：分类管理 ========== -->
+  <div class="modal-overlay" id="modal-cats" style="display:none">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <h3 class="modal-title">管理分类</h3>
+      <div class="cat-list" id="cat-list-manage"></div>
+      <div class="cat-add-row">
+        <input type="text" id="cat-new-name" placeholder="新分类名称…" maxlength="12">
+        <button class="text-btn-primary" id="btn-add-cat">添加</button>
+      </div>
+      <button class="modal-cancel" id="btn-close-cats">完成</button>
+    </div>
+  </div>
+
+  <!-- ========== 卡片详情/编辑页（全屏覆盖） ========== -->
+  <div class="fullscreen-page" id="page-card-detail" style="display:none">
+    <!-- 由 JS 动态渲染 -->
+  </div>
+
+  <!-- ========== Toast 提示 ========== -->
+  <div class="toast" id="toast"></div>
+
+  <script src="js/store.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/home.js"></script>
+  <script src="js/coc7.js"></script>
+  <script src="js/dnd5.js"></script>
+  <script src="js/tools.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
