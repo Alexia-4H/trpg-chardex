@@ -53,3 +53,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }, { passive: false });
 
 });
+
+
+// ── 注册 Service Worker（离线缓存 + 自动更新）────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
