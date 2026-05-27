@@ -2,6 +2,23 @@
  * app.js — 主入口，初始化所有模块
  */
 
+// ── 闲鱼跳转：优先唤起 App，失败则跳网页 ────────────
+function openGoofish(itemId) {
+  const appUrl = 'fleamarket://item?id=' + itemId;
+  const webUrl = 'https://www.goofish.com/item?id=' + itemId;
+
+  // 尝试唤起 App
+  const start = Date.now();
+  window.location.href = appUrl;
+
+  // 如果 2.5 秒后页面还在（说明 App 没唤起），跳转网页版
+  setTimeout(() => {
+    if (Date.now() - start < 3000) {
+      window.location.href = webUrl;
+    }
+  }, 2500);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 
   // ── 底部导航切换 ──────────────────────────────────
