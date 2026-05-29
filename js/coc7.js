@@ -75,15 +75,15 @@ function calcCOC7Derived(attrs) {
   const mov  = (str < siz && dex < siz) ? 7
              : (str > siz && dex > siz) ? 9 : 8;
 
-  // 体格
+  // 体格（COC 7e 规则，基于 STR+SIZ 实际值）
   const strSiz = str + siz;
   let db = '0', build = 0;
-  if      (strSiz <= 12)  { db = '-2'; build = -2; }
-  else if (strSiz <= 16)  { db = '-1'; build = -1; }
-  else if (strSiz <= 24)  { db = '0';  build =  0; }
-  else if (strSiz <= 32)  { db = '+1D4'; build = 1; }
-  else if (strSiz <= 40)  { db = '+1D6'; build = 2; }
-  else                    { db = '+2D6'; build = 3; }
+  if      (strSiz <= 64)  { db = '-2';   build = -2; }
+  else if (strSiz <= 84)  { db = '-1';   build = -1; }
+  else if (strSiz <= 124) { db = '0';    build =  0; }
+  else if (strSiz <= 164) { db = '+1D4'; build =  1; }
+  else if (strSiz <= 204) { db = '+1D6'; build =  2; }
+  else                    { db = '+2D6'; build =  3; }
 
   return { hp, mp, san, mov, db, build };
 }
