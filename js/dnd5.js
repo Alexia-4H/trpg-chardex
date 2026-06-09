@@ -68,6 +68,7 @@ const DND5Editor = (() => {
         savingThrows: {},   // { STR: true/false, ... }
         skillProfs:   {},   // { 技能名: 0/1/2 } 0=无 1=熟练 2=专精
         customFields: [],
+        weapons:      [],   // [{ name, dice, type:'melee'|'finesse'|'ranged', proficient:bool, note }]
         equipment:    '',
         spells:       '',
         features:     '',
@@ -263,6 +264,20 @@ const DND5Editor = (() => {
       </div>
     </div>
 
+    <!-- 武器 -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <span class="form-section-title">武器</span>
+        <span style="font-size:11px;color:var(--text-muted)">自动计算命中和伤害</span>
+      </div>
+      <div id="dnd5-weapons-list" style="padding:0 16px 4px">
+        ${_buildWeaponsEditHTML(c.weapons || [])}
+      </div>
+      <div style="padding:0 16px 12px">
+        <button class="btn-add-custom" id="dnd5-add-weapon">＋ 添加武器</button>
+      </div>
+    </div>
+
     <!-- 装备 -->
     <div class="form-section">
       <div class="form-section-header"><span class="form-section-title">装备</span></div>
@@ -385,6 +400,20 @@ const DND5Editor = (() => {
         _refreshCustomFields();
       }
     });
+
+    // 武器
+    document.getElementById('dnd5-add-weapon').addEventListener('click', () => {
+      if (!_card.weapons) _card.weapons = [];
+      _card.weapons.push({ name:'', dice:'1d8', type:'melee', proficient:true, note:'' });
+      _refreshWeapons();
+    });
+    document.getElementById('dnd5-weapons-list').addEventListener('click', e => {
+      const idx = e.target.dataset.delWeapon;
+      if (idx !== undefined) {
+        _card.weapons.splice(parseInt(idx), 1);
+        _refreshWeapons();
+      }
+    });
   }
 
   function _refreshCustomFields() {
@@ -397,6 +426,58 @@ const DND5Editor = (() => {
           placeholder="值" value="${UI.esc(f.value)}" data-custom-val="${i}">
         <button class="btn-del-custom" data-del-custom="${i}">×</button>
       </div>`).join('');
+  }
+
+  // ── 武器编辑 ──────────────────────────────────────
+  function _buildWeaponsEditHTML(weapons) {
+    if (!weapons.length) return '';
+    return weapons.map((w, i) => `
+      <div class="weapon-edit-row" data-widx="${i}" style="padding:10px 0;border-bottom:1px solid var(--border)">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+          <input type="text" placeholder="武器名" value="${UI.esc(w.name)}" data-wfield="name"
+            style="flex:1;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-xs);padding:6px 8px;font-size:14px;color:var(--text)">
+          <button data-del-weapon="${i}" style="color:var(--text-muted);font-size:18px;width:28px;text-align:center">×</button>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input type="text" placeholder="伤害骰 如1d8" value="${UI.esc(w.dice)}" data-wfield="dice"
+            style="width:70px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-xs);padding:5px 8px;font-size:13px;color:var(--text);text-align:center">
+          <select data-wfield="type" style="background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-xs);padding:5px 8px;font-size:13px;color:var(--text)">
+            <option value="melee" ${w.type==='melee'?'selected':''}>近战(力量)</option>
+            <option value="finesse" ${w.type==='finesse'?'selected':''}>灵巧(取高)</option>
+            <option value="ranged" ${w.type==='ranged'?'selected':''}>远程(敏捷)</option>
+          </select>
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text-sub)">
+            <input type="checkbox" data-wfield="proficient" ${w.proficient?'checked':''} style="accent-color:var(--text)"> 熟练
+          </label>
+        </div>
+        <input type="text" placeholder="备注（特殊效果、额外伤害等）" value="${UI.esc(w.note || '')}" data-wfield="note"
+          style="width:100%;margin-top:6px;background:transparent;border:none;font-size:12px;color:var(--text-muted);padding:0">
+      </div>`).join('');
+  }
+
+  function _refreshWeapons() {
+    const container = document.getElementById('dnd5-weapons-list');
+    if (container) container.innerHTML = _buildWeaponsEditHTML(_card.weapons || []);
+  }
+
+  function _collectWeapons() {
+    const weapons = [];
+    document.querySelectorAll('#dnd5-weapons-list .weapon-edit-row').forEach(row => {
+      const get = (field) => {
+        const el = row.querySelector(`[data-wfield="${field}"]`);
+        if (!el) return '';
+        if (el.type === 'checkbox') return el.checked;
+        return el.value.trim();
+      };
+      weapons.push({
+        name: get('name'),
+        dice: get('dice'),
+        type: get('type'),
+        proficient: get('proficient'),
+        note: get('note'),
+      });
+    });
+    return weapons;
   }
 
   function _updateAllBonuses() {
@@ -485,6 +566,9 @@ const DND5Editor = (() => {
       if (nameEl && valEl) customFields.push({ name: nameEl.value.trim(), value: valEl.value.trim() });
     });
 
+    // 收集武器
+    const weapons = _collectWeapons();
+
     const catEl = document.getElementById('f-category');
 
     _card = {
@@ -496,7 +580,7 @@ const DND5Editor = (() => {
       background:   document.getElementById('f-background')?.value.trim() || '',
       alignment:    document.getElementById('f-alignment')?.value.trim() || '',
       categoryId:   catEl ? (catEl.value || null) : null,
-      attrs, savingThrows, skillProfs, customFields,
+      attrs, savingThrows, skillProfs, customFields, weapons,
       equipment:    document.getElementById('f-equipment')?.value.trim() || '',
       spells:       document.getElementById('f-spells')?.value.trim() || '',
       features:     document.getElementById('f-features')?.value.trim() || '',
@@ -761,6 +845,38 @@ const DND5Detail = {
   <div class="view-section">
     <div class="view-section-header">自定义字段</div>
     <div class="view-custom-list">${customRows}</div>
+  </div>` : ''}
+
+  ${(c.weapons && c.weapons.length) ? `
+  <div class="view-section">
+    <div class="view-section-header">武器</div>
+    <div style="padding:4px 0">
+      ${c.weapons.filter(w => w.name).map(w => {
+        const strMod = statMod(a.STR);
+        const dexMod = statMod(a.DEX);
+        let atkMod = w.type === 'ranged' ? dexMod
+                   : w.type === 'finesse' ? Math.max(strMod, dexMod)
+                   : strMod;
+        let dmgMod = atkMod;
+        const hitBonus = atkMod + (w.proficient ? pb : 0);
+        const dmgStr = w.dice ? w.dice + (dmgMod >= 0 ? '+' + dmgMod : dmgMod) : ('—');
+        const hitStr = hitBonus >= 0 ? '+' + hitBonus : hitBonus;
+        const typeLabel = { melee:'近战', finesse:'灵巧', ranged:'远程' }[w.type] || '';
+        return `
+          <div style="padding:10px 16px;border-bottom:1px solid var(--border)">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:14px;font-weight:600;flex:1">${UI.esc(w.name)}</span>
+              <span style="font-size:11px;color:var(--text-muted)">${typeLabel}</span>
+            </div>
+            <div style="display:flex;gap:16px;margin-top:4px">
+              <span style="font-size:13px;color:var(--text-sub)">命中 <b style="color:var(--text)">${hitStr}</b></span>
+              <span style="font-size:13px;color:var(--text-sub)">伤害 <b style="color:var(--text)">${dmgStr}</b></span>
+              ${w.proficient ? '<span style="font-size:11px;color:var(--text-muted)">熟练</span>' : ''}
+            </div>
+            ${w.note ? `<div style="font-size:12px;color:var(--text-muted);margin-top:3px">${UI.esc(w.note)}</div>` : ''}
+          </div>`;
+      }).join('')}
+    </div>
   </div>` : ''}
 
   ${c.equipment ? `
