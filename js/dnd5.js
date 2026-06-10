@@ -404,12 +404,16 @@ const DND5Editor = (() => {
     // 武器
     document.getElementById('dnd5-add-weapon').addEventListener('click', () => {
       if (!_card.weapons) _card.weapons = [];
+      // 先收集当前已填的武器数据，防止丢失
+      _card.weapons = _collectWeapons();
       _card.weapons.push({ name:'', dice:'1d8', type:'melee', proficient:true, note:'' });
       _refreshWeapons();
     });
     document.getElementById('dnd5-weapons-list').addEventListener('click', e => {
       const idx = e.target.dataset.delWeapon;
       if (idx !== undefined) {
+        // 先收集当前数据再删除
+        _card.weapons = _collectWeapons();
         _card.weapons.splice(parseInt(idx), 1);
         _refreshWeapons();
       }
