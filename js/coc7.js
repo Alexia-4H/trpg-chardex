@@ -476,29 +476,29 @@ const COC7Editor = (() => {
   // 属性别名映射 → 内部字段名
   const _ATTR_ALIAS = {
     // STR
-    '力量':1,'str':1,
+    '力量':1,'str':1,'力量(力量)':1,'str(str)':1,
     // CON
-    '体质':2,'con':2,
+    '体质':2,'con':2,'体质(体质)':2,'con(con)':2,
     // SIZ
-    '体型':3,'siz':3,
+    '体型':3,'siz':3,'体型(体型)':3,'siz(siz)':3,
     // DEX
-    '敏捷':4,'dex':4,
+    '敏捷':4,'dex':4,'敏捷(敏捷)':4,'dex(dex)':4,
     // APP
-    '外貌':5,'app':5,
+    '外貌':5,'app':5,'外貌(外貌)':5,'app(app)':5,
     // INT
-    '智力':6,'灵感':6,'int':6,
+    '智力':6,'灵感':6,'int':6,'智力(智力)':6,'int(int)':6,
     // POW
-    '意志':7,'pow':7,
+    '意志':7,'pow':7,'意志(意志)':7,'pow(pow)':7,
     // EDU
-    '教育':8,'edu':8,
+    '教育':8,'edu':8,'教育(教育)':8,'edu(edu)':8,
     // LUCK
-    '幸运':9,'运气':9,'luck':9,
+    '幸运':9,'运气':9,'luck':9,'幸运(幸运)':9,'luck(luck)':9,
     // SAN
-    'san':10,'san值':10,'理智':10,'理智值':10,
+    'san':10,'san值':10,'理智':10,'理智值':10,'san(san)':10,'理智(理智)':10,
     // HP
-    'hp':11,'体力':11,
+    'hp':11,'体力':11,'hp(hp)':11,'体力(体力)':11,
     // MP
-    'mp':12,'魔法':12,
+    'mp':12,'魔法':12,'mp(mp)':12,'魔法(魔法)':12,
   };
   const _ATTR_KEYS = ['STR','CON','SIZ','DEX','APP','INT','POW','EDU','luck','san','hp','mp'];
 
@@ -530,11 +530,17 @@ const COC7Editor = (() => {
   function _parseST(raw) {
     // 去掉 .st 前缀和空白
     const text = raw.replace(/^\.st\s*/i, '').trim();
+    
+    // 预处理：去除中文和英文括号及其内容
+    const cleanedText = text
+      .replace(/\([^)]*\)/g, '')    // 去除英文括号内容
+      .replace(/（[^）]*）/g, '');   // 去除中文括号内容
+    
     // 用正则提取所有 "中文或英文词+数字" 对
     const pairs = [];
-    const re = /([\u4e00-\u9fa5a-zA-Z()（）]+?)(\d+)/g;
+    const re = /([\u4e00-\u9fa5a-zA-Z]+?)(\d+)/g;
     let m;
-    while ((m = re.exec(text)) !== null) {
+    while ((m = re.exec(cleanedText)) !== null) {
       pairs.push({ key: m[1].toLowerCase().trim(), val: parseInt(m[2]) });
     }
     return pairs;
@@ -552,10 +558,32 @@ const COC7Editor = (() => {
     const unknown  = []; // { key, val }
 
     pairs.forEach(({ key, val }) => {
+      // 尝试直接匹配
       const attrIdx = _ATTR_ALIAS[key];
       if (attrIdx) { attrMap[_ATTR_KEYS[attrIdx - 1]] = val; return; }
       const skillName = _SKILL_ALIAS[key];
       if (skillName) { skillMap[skillName] = val; return; }
+      
+      // 如果直接匹配失败，尝试清理常见后缀后再匹配
+      // 清理常见后缀：括号残留、空格、冒号等
+      const cleanedKey = key
+        .replace(/[()（）]/g, '')  // 清理残留的括号字符
+        .replace(/[\s:：]/g, '')   // 清理空格和冒号
+        .trim();
+      
+      if (cleanedKey !== key) {
+        const cleanedAttrIdx = _ATTR_ALIAS[cleanedKey];
+        if (cleanedAttrIdx) { 
+          attrMap[_ATTR_KEYS[cleanedAttrIdx - 1]] = val; 
+          return; 
+        }
+        const cleanedSkillName = _SKILL_ALIAS[cleanedKey];
+        if (cleanedSkillName) { 
+          skillMap[cleanedSkillName] = val; 
+          return; 
+        }
+      }
+      
       // 去重：同一个 key 只保留最后一个值
       const existing = unknown.find(u => u.key === key);
       if (existing) existing.val = val;
@@ -592,7 +620,13 @@ const COC7Editor = (() => {
     const msg = document.getElementById('coc7-import-msg');
 
     if (unknown.length === 0) {
-      msg.innerHTML = `<span style="color:var(--text-sub)">已填入 ${matched} 项，全部识别成功</span>`;
+      const totalPairs = pairs.length;
+      const cleanedCount = totalPairs - matched;
+      let cleanupInfo = '';
+      if (cleanedCount > 0) {
+        cleanupInfo = `（自动清理了${cleanedCount}项中的括号内容）`;
+      }
+      msg.innerHTML = `<span style="color:var(--text-sub)">已填入 ${matched} 项，全部识别成功${cleanupInfo}</span>`;
       UI.toast(`识别并填入 ${matched} 项`);
     } else {
       // 渲染未识别列表，每项可点击加入自定义字段
@@ -605,9 +639,15 @@ const COC7Editor = (() => {
           <span style="color:var(--text-muted);font-size:10px">+加入自定义</span>
         </span>`
       ).join('');
+      const totalPairs = pairs.length;
+      const cleanedCount = totalPairs - matched - unknown.length;
+      let cleanupInfo = '';
+      if (cleanedCount > 0) {
+        cleanupInfo = `（自动清理了${cleanedCount}项中的括号内容）`;
+      }
       msg.innerHTML = `
         <div style="color:var(--text-muted);font-size:12px;margin-bottom:4px">
-          已填入 ${matched} 项，以下 ${unknown.length} 项未识别，点击可加入自定义字段：
+          已填入 ${matched} 项${cleanupInfo}，以下 ${unknown.length} 项未识别，点击可加入自定义字段：
         </div>
         <div id="unknown-tags">${items}</div>`;
 
@@ -641,11 +681,24 @@ const COC7Editor = (() => {
     });
     if (a.luck) parts.push(`幸运${a.luck}luck${a.luck}`);
 
-    // 技能
+    // 收集所有技能
+    const skills = {};
     document.querySelectorAll('#coc7-skill-list .skill-input').forEach(el => {
       const name = el.dataset.skill;
       const v = parseInt(el.value);
-      if (name && !isNaN(v) && v > 0) parts.push(`${name}${v}`);
+      if (name && !isNaN(v) && v > 0) {
+        skills[name] = v;
+      }
+    });
+
+    // 应用通用简化逻辑
+    const simplifiedSkills = _simplifySkillNamesForST(skills);
+    
+    // 添加简化后的技能
+    Object.entries(simplifiedSkills).forEach(([name, value]) => {
+      if (value > 0) {
+        parts.push(`${name}${value}`);
+      }
     });
 
     const text = parts.join('');
@@ -653,6 +706,71 @@ const COC7Editor = (() => {
       document.getElementById('f-import-st').value = text;
       UI.toast('已复制，可直接发给骰子机器人');
     });
+  }
+
+  // 通用技能简化逻辑（用于ST数据生成）
+  function _simplifySkillNamesForST(skills) {
+    // 特殊规则映射
+    const SPECIAL_RULES = {
+      '格斗(斗殴)': '斗殴',
+      '图书馆使用': '图书馆',
+      '信用评级': '信用',
+      '操作重型机械': '重型机械',
+      '电气维修': '电气',
+      '机械维修': '机械',
+      '精神分析': '精神分析',
+      '博物学': '自然学',
+      '计算机': '电脑',
+    };
+
+    // 第一步：收集所有带括号的技能，按基础名称分组
+    const groupedSkills = {};
+    
+    Object.keys(skills).forEach(skillName => {
+      if (skillName.includes('(')) {
+        const match = skillName.match(/^([^(]+)\(([^)]+)\)$/);
+        if (match) {
+          const baseName = match[1];
+          if (!groupedSkills[baseName]) {
+            groupedSkills[baseName] = [];
+          }
+          groupedSkills[baseName].push(skillName);
+        }
+      }
+    });
+
+    // 第二步：应用简化规则
+    const simplified = {};
+    
+    Object.entries(skills).forEach(([skillName, value]) => {
+      // 检查特殊规则
+      if (SPECIAL_RULES[skillName]) {
+        simplified[SPECIAL_RULES[skillName]] = value;
+        return;
+      }
+      
+      if (skillName.includes('(')) {
+        const match = skillName.match(/^([^(]+)\(([^)]+)\)$/);
+        if (match) {
+          const baseName = match[1];
+          const variant = match[2];
+          const variants = groupedSkills[baseName];
+          
+          if (variants.length === 1) {
+            // 只有一个变体：使用基础名称
+            simplified[baseName] = value;
+          } else {
+            // 有多个变体：使用括号内的内容
+            simplified[variant] = value;
+          }
+        }
+      } else {
+        // 无括号的技能直接使用
+        simplified[skillName] = value;
+      }
+    });
+    
+    return simplified;
   }
 
   // ── 收集表单数据并保存 ────────────────────────────

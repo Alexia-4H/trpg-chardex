@@ -1,5 +1,5 @@
 // Service Worker — 离线缓存 + 自动更新
-const CACHE_NAME = 'chardex-v1.4';
+const CACHE_NAME = 'chardex-v1.5';
 const ASSETS = [
   './',
   './index.html',
