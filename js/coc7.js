@@ -692,7 +692,7 @@ const COC7Editor = (() => {
     });
 
     // 应用通用简化逻辑
-    const simplifiedSkills = _simplifySkillNamesForST(skills);
+    const simplifiedSkills = simplifySkillNamesForST(skills);
     
     // 添加简化后的技能
     Object.entries(simplifiedSkills).forEach(([name, value]) => {
@@ -708,70 +708,7 @@ const COC7Editor = (() => {
     });
   }
 
-  // 通用技能简化逻辑（用于ST数据生成）
-  function _simplifySkillNamesForST(skills) {
-    // 特殊规则映射
-    const SPECIAL_RULES = {
-      '格斗(斗殴)': '斗殴',
-      '图书馆使用': '图书馆',
-      '信用评级': '信用',
-      '操作重型机械': '重型机械',
-      '电气维修': '电气',
-      '机械维修': '机械',
-      '精神分析': '精神分析',
-      '博物学': '自然学',
-      '计算机': '电脑',
-    };
 
-    // 第一步：收集所有带括号的技能，按基础名称分组
-    const groupedSkills = {};
-    
-    Object.keys(skills).forEach(skillName => {
-      if (skillName.includes('(')) {
-        const match = skillName.match(/^([^(]+)\(([^)]+)\)$/);
-        if (match) {
-          const baseName = match[1];
-          if (!groupedSkills[baseName]) {
-            groupedSkills[baseName] = [];
-          }
-          groupedSkills[baseName].push(skillName);
-        }
-      }
-    });
-
-    // 第二步：应用简化规则
-    const simplified = {};
-    
-    Object.entries(skills).forEach(([skillName, value]) => {
-      // 检查特殊规则
-      if (SPECIAL_RULES[skillName]) {
-        simplified[SPECIAL_RULES[skillName]] = value;
-        return;
-      }
-      
-      if (skillName.includes('(')) {
-        const match = skillName.match(/^([^(]+)\(([^)]+)\)$/);
-        if (match) {
-          const baseName = match[1];
-          const variant = match[2];
-          const variants = groupedSkills[baseName];
-          
-          if (variants.length === 1) {
-            // 只有一个变体：使用基础名称
-            simplified[baseName] = value;
-          } else {
-            // 有多个变体：使用括号内的内容
-            simplified[variant] = value;
-          }
-        }
-      } else {
-        // 无括号的技能直接使用
-        simplified[skillName] = value;
-      }
-    });
-    
-    return simplified;
-  }
 
   // ── 收集表单数据并保存 ────────────────────────────
   function _save() {
@@ -836,6 +773,71 @@ const COC7Editor = (() => {
 
   return { open };
 })();
+
+// ── 全局技能简化函数（供编辑和详情页共用） ─────────────────────────────────────
+function simplifySkillNamesForST(skills) {
+  // 特殊规则映射
+  const SPECIAL_RULES = {
+    '格斗(斗殴)': '斗殴',
+    '图书馆使用': '图书馆',
+    '信用评级': '信用',
+    '操作重型机械': '重型机械',
+    '电气维修': '电气',
+    '机械维修': '机械',
+    '精神分析': '精神分析',
+    '博物学': '自然学',
+    '计算机': '电脑',
+  };
+
+  // 第一步：收集所有带括号的技能，按基础名称分组
+  const groupedSkills = {};
+  
+  Object.keys(skills).forEach(skillName => {
+    if (skillName.includes('(')) {
+      const match = skillName.match(/^([^(]+)\(([^)]+)\)$/);
+      if (match) {
+        const baseName = match[1];
+        if (!groupedSkills[baseName]) {
+          groupedSkills[baseName] = [];
+        }
+        groupedSkills[baseName].push(skillName);
+      }
+    }
+  });
+
+  // 第二步：应用简化规则
+  const simplified = {};
+  
+  Object.entries(skills).forEach(([skillName, value]) => {
+    // 检查特殊规则
+    if (SPECIAL_RULES[skillName]) {
+      simplified[SPECIAL_RULES[skillName]] = value;
+      return;
+    }
+    
+    if (skillName.includes('(')) {
+      const match = skillName.match(/^([^(]+)\(([^)]+)\)$/);
+      if (match) {
+        const baseName = match[1];
+        const variant = match[2];
+        const variants = groupedSkills[baseName];
+        
+        if (variants.length === 1) {
+          // 只有一个变体：使用基础名称
+          simplified[baseName] = value;
+        } else {
+          // 有多个变体：使用括号内的内容
+          simplified[variant] = value;
+        }
+      }
+    } else {
+      // 无括号的技能直接使用
+      simplified[skillName] = value;
+    }
+  });
+  
+  return simplified;
+}
 
 // ── COC7Detail：查看卡片详情 ──────────────────────────────────────────────────
 const CardDetail = (() => {
@@ -1041,7 +1043,18 @@ const CardDetail = (() => {
     });
     if (a.luck) parts.push(`幸运${a.luck}luck${a.luck}`);
     const skills = Object.entries(c.skills || {}).filter(([,v]) => v > 0);
-    skills.forEach(([name, val]) => parts.push(`${name}${val}`));
+    
+    // 应用简化逻辑（使用全局简化函数）
+    const simplifiedSkills = simplifySkillNamesForST(skills.reduce((acc, [name, val]) => {
+      acc[name] = val;
+      return acc;
+    }, {}));
+    
+    // 添加简化后的技能
+    Object.entries(simplifiedSkills).forEach(([name, val]) => {
+      parts.push(`${name}${val}`);
+    });
+    
     return parts.join('');
   }
 
